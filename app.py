@@ -1,4 +1,3 @@
-
 import streamlit as st
 from openai import OpenAI
 from langchain import PromptTemplate
@@ -28,21 +27,16 @@ prompt_template = PromptTemplate(
 
 def main():
 
+    
+
 
     st.title("ELEVATE Demonstration")
     
-    st.text("Prompt Generator")
+    st.subheader("Prompt Generator")
 
-    
-    # TODO add gpt4o-mini
-    # TODO switch from OpenAI to ChatOpenAI (langchain)
-
-    # Set OpenAI API key from Streamlit secrets
-    # TODO Clash
-    #client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     with st.sidebar:
         openai_api_key = st.text_input("OpenAI API Key",type="password")
-        st.session_state.openai_model = st.selectbox('Model',("gpt-3.5-turbo","gpt-4o-mini"))
+        st.session_state.openai_model = st.selectbox('Model',("gpt-4o-mini"))
 
     client = OpenAI(api_key=openai_api_key)
 
@@ -52,7 +46,22 @@ def main():
         # Set a default model
         if "openai_model" not in st.session_state:
             st.session_state["openai_model"] = "gpt-3.5-turbo-instruct"
-            
+
+        def is_api_key_valid(client):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini", # https://platform.openai.com/docs/models
+                    messages=[
+                        {"role": "user", "content": "This is a test"}
+                    ]
+                )
+            except Exception as ex:
+                st.warning(str(ex), icon="⚠")
+            else:
+                pass
+
+        is_api_key_valid(client)
+
         # Initialize chat history
         if "messages" not in st.session_state:
             st.session_state.messages = []
@@ -78,7 +87,7 @@ def main():
                 )
                 st.write_stream(chat_completion)
 
-        st.text("ChatGPT")
+        st.subheader("ChatGPT")
 
         if prompt := st.chat_input("What is up?"):
             st.session_state.messages.append({"role": "user", "content": prompt})
@@ -86,15 +95,17 @@ def main():
                 st.markdown(prompt)
 
             with st.chat_message("assistant"):
-                stream = client.chat.completions.create(
-                    model=st.session_state["openai_model"],
-                    messages=[
-                        {"role": m["role"], "content": m["content"]}
-                        for m in st.session_state.messages
-                    ],
-                    stream=True,
-                )
-                response = st.write_stream(stream)
+                 
+                    
+                    stream = client.chat.completions.create(
+                        model=st.session_state["openai_model"],
+                        messages=[
+                            {"role": m["role"], "content": m["content"]}
+                            for m in st.session_state.messages
+                        ],
+                        stream=True,
+                    )
+                    response = st.write_stream(stream)       
             st.session_state.messages.append({"role": "assistant", "content": response})
 
 
